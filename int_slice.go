@@ -10,12 +10,15 @@ import (
 type intSliceValue struct {
 	value   *[]int
 	changed bool
+	cascaded bool
+	counter int
 }
 
 func newIntSliceValue(val []int, p *[]int) *intSliceValue {
 	isv := new(intSliceValue)
 	isv.value = p
 	*isv.value = val
+	isv.cascaded = true
 	return isv
 }
 
@@ -36,6 +39,7 @@ func (s *intSliceValue) Set(val string) error {
 		*s.value = append(*s.value, out...)
 	}
 	s.changed = true
+	s.counter += 1
 	return nil
 }
 
@@ -49,6 +53,16 @@ func (s *intSliceValue) String() string {
 		out[i] = fmt.Sprintf("%d", d)
 	}
 	return "[" + strings.Join(out, ",") + "]"
+}
+
+func (s *intSliceValue) Reassigned() bool {
+	if s.cascaded {
+		return false
+	}
+	if s.counter > 0 {
+		return true
+	}
+	return false
 }
 
 func intSliceConv(val string) (interface{}, error) {

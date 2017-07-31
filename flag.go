@@ -176,6 +176,7 @@ type Value interface {
 	String() string
 	Set(string) error
 	Type() string
+	Reassigned() bool
 }
 
 // sortFlags returns the flags as a slice in lexicographical sorted order.
@@ -429,6 +430,9 @@ func (f *FlagSet) Set(name, value string) error {
 		return fmt.Errorf("no such flag -%v", name)
 	}
 
+	if flag.Value.Reassigned() {
+		fmt.Fprintf(f.out(), "Warning: Flag --%s has been reassgined again\n", flag.Name)
+	}
 	err := flag.Value.Set(value)
 	if err != nil {
 		var flagName string
